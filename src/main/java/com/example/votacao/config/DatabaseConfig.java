@@ -1,5 +1,7 @@
 package com.example.votacao.config;
 
+import java.sql.SQLException;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -14,11 +16,15 @@ public class DatabaseConfig {
 
   @Value("${spring.datasource.url}")
   private String dbUrl;
-
+  
   @Bean
-  public DataSource dataSource() {
+  public DataSource dataSource() throws SQLException {
+    if (dbUrl == null || dbUrl.isEmpty()) {
+      return new HikariDataSource();
+    } else {
       HikariConfig config = new HikariConfig();
       config.setJdbcUrl(dbUrl);
       return new HikariDataSource(config);
+    }
   }
 }
