@@ -11,6 +11,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 @Entity(name = "pauta")
 public class Pauta {
 
@@ -25,6 +27,7 @@ public class Pauta {
 	@Column(name = "datacriacao")
 	@Temporal(TemporalType.TIMESTAMP)
 	@NotNull
+	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone="America/Sao_Paulo")
 	private Date dataCriacao;
 	
 	public Pauta() {
