@@ -1,6 +1,5 @@
 package com.example.votacao.controllers;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,8 +23,10 @@ import com.example.votacao.dto.PautaDTO;
 import com.example.votacao.dto.VotoDTO;
 import com.example.votacao.entity.Pauta;
 import com.example.votacao.entity.Voto;
+import com.example.votacao.entity.VotoPK;
 import com.example.votacao.repository.PautaRepository;
 import com.example.votacao.repository.VotoRepository;
+import com.example.votacao.util.ValidarCPF;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -60,7 +61,7 @@ public class PautaController {
 
 	@PostMapping("/adicionar")
 	public ResponseEntity<Object> adicionarPauta(@Valid @RequestBody PautaDTO pauta) {
-		Pauta pautaGravar = new Pauta(pauta.getNome(), new Date());
+		Pauta pautaGravar = new Pauta(pauta.getNome());
 		pautaRepository.saveAndFlush(pautaGravar);
 
 		return new ResponseEntity<>(HttpStatus.CREATED);
@@ -94,21 +95,39 @@ public class PautaController {
 	public ResponseEntity<Object> abrirSessaoVotacao(@Valid @RequestBody AbrirSessaoVotacaoDTO abrirSessaoVotacaoDTO) {
 		Pauta pauta = pautaRepository.getById(abrirSessaoVotacaoDTO.getIdPauta());
 		pauta.setDataAbertura(abrirSessaoVotacaoDTO.getDataAbertura());
-		pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataFechamento());
-//		pauta.setAberta(true);
 
+		if (abrirSessaoVotacaoDTO.getDataFechamento() == null) {
+			pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataAbertura().plusMinutes(1));
+		} else {
+			pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataFechamento());
+		}
+
+		pautaRepository.saveAndFlush(pauta);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@PostMapping("/votar")
 	public ResponseEntity<Object> votar(@Valid @RequestBody VotoDTO votoDTO) {
 
+		if (!ValidarCPF.isCPF(votoDTO.getCpf())) {
+			return new ResponseEntity<>(new ErroDTO("CPF inválido."), new HttpHeaders(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 		Pauta pauta = pautaRepository.getById(votoDTO.getIdPauta());
 
 		if (pauta.isAberta()) {
-			Voto voto = new Voto(votoDTO.getVoto().getCpf(), votoDTO.getVoto().getVoto(), pauta);
+
+			VotoPK votoId = new VotoPK(votoDTO.getCpf(), votoDTO.getIdPauta());
+
+			if (votoRepository.existsById(votoId)) {
+				return new ResponseEntity<>(new ErroDTO("Voto não permitido. Apenas um voto por CPF permitido."),
+						new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			Voto voto = new Voto(votoId, votoDTO.getVoto());
 			votoRepository.saveAndFlush(voto);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return new ResponseEntity<>(HttpStatus.CREATED);
 		} else {
 			return new ResponseEntity<>(new ErroDTO("Pauta fechada para votação."), new HttpHeaders(),
 					HttpStatus.INTERNAL_SERVER_ERROR);

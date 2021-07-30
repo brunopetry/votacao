@@ -1,12 +1,12 @@
 package com.example.votacao.dto;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class AbrirSessaoVotacaoDTO {
 
 	private int idPauta;
-	private Date dataAbertura;
-	private Date dataFechamento;
+	private LocalDateTime dataAbertura;
+	private LocalDateTime dataFechamento;
 
 	public int getIdPauta() {
 		return idPauta;
@@ -16,19 +16,19 @@ public class AbrirSessaoVotacaoDTO {
 		this.idPauta = idPauta;
 	}
 
-	public Date getDataAbertura() {
+	public LocalDateTime getDataAbertura() {
 		return dataAbertura;
 	}
 
-	public void setDataAbertura(Date dataAbertura) {
+	public void setDataAbertura(LocalDateTime dataAbertura) {
 		this.dataAbertura = dataAbertura;
 	}
 
-	public Date getDataFechamento() {
+	public LocalDateTime getDataFechamento() {
 		return dataFechamento;
 	}
 
-	public void setDataFechamento(Date dataFechamento) {
+	public void setDataFechamento(LocalDateTime dataFechamento) {
 		this.dataFechamento = dataFechamento;
 	}
 

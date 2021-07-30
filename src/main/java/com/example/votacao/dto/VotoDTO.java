@@ -1,11 +1,12 @@
 package com.example.votacao.dto;
 
-import com.example.votacao.entity.Voto;
+import com.example.votacao.util.ValidarCPF;
 
 public class VotoDTO {
 
+	private String cpf;
 	private int idPauta;
-	private Voto voto;
+	private String voto;
 
 	public int getIdPauta() {
 		return idPauta;
@@ -15,11 +16,24 @@ public class VotoDTO {
 		this.idPauta = idPauta;
 	}
 
-	public Voto getVoto() {
+	public String getCpf() {
+		return cpf;
+	}
+
+	public void setCpf(String cpf) {
+
+		if (cpf != null) {
+			cpf = ValidarCPF.removeCaracteresEspeciais(cpf);
+		}
+
+		this.cpf = cpf;
+	}
+
+	public String getVoto() {
 		return voto;
 	}
 
-	public void setVoto(Voto voto) {
+	public void setVoto(String voto) {
 		this.voto = voto;
 	}
 

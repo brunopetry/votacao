@@ -1,33 +1,33 @@
 package com.example.votacao.dto;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ErroDTO {
 
-	private Date data;
+	private LocalDateTime data;
 	private String mensagemErro;
 
 	public ErroDTO() {
 	}
 
 	public ErroDTO(String mensagemErro) {
-		this.data = new Date();
+		this.data = LocalDateTime.now();
 		this.mensagemErro = mensagemErro;
 	}
 
-	public Date getData() {
+	public LocalDateTime getData() {
 		return data;
 	}
 
-	public void setData(Date data) {
+	public void setData(LocalDateTime data) {
 		this.data = data;
 	}
 
-	public String getMensagem() {
+	public String getMensagemErro() {
 		return mensagemErro;
 	}
 
-	public void setMensagem(String mensagemErro) {
+	public void setMensagemErro(String mensagemErro) {
 		this.mensagemErro = mensagemErro;
 	}
 

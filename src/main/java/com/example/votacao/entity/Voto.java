@@ -1,68 +1,81 @@
 package com.example.votacao.entity;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-
-import org.hibernate.validator.constraints.br.CPF;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity(name = "voto")
 public class Voto {
 
-	@Id
-	@CPF
-	private String cpf;
+	@EmbeddedId
+	private VotoPK id;
 
-	@Enumerated(EnumType.STRING)
-	private Tipo voto;
+	private String voto;
 
 	@ManyToOne
+	@JoinColumn(name = "pauta_id", insertable = false, updatable = false)
 	@JsonIgnore
 	private Pauta pauta;
 
 	public Voto() {
 	}
 
-	public Voto(@CPF String cpf, Tipo voto, Pauta pauta) {
+	public Voto(VotoPK id, String voto) {
 		super();
-		this.cpf = cpf;
+		this.id = id;
 		this.voto = voto;
+	}
+
+	public VotoPK getId() {
+		return id;
+	}
+
+	public void setId(VotoPK id) {
+		this.id = id;
+	}
+
+	public Pauta getPauta() {
+		return pauta;
+	}
+
+	public void setPauta(Pauta pauta) {
 		this.pauta = pauta;
 	}
 
-	public enum Tipo {
-		SIM("SIM"), NAO("NÃO");
-
-		private String tipo;
-
-		private Tipo(String tipo) {
-			this.tipo = tipo;
-		}
-
-		@Override
-		public String toString() {
-			return this.tipo;
-		}
-	}
-
-	public String getCpf() {
-		return cpf;
-	}
-
-	public void setCpf(String cpf) {
-		this.cpf = cpf;
-	}
-
-	public Tipo getVoto() {
+	public String getVoto() {
 		return voto;
 	}
 
-	public void setVoto(Tipo voto) {
+	public void setVoto(String voto) {
 		this.voto = voto;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Voto other = (Voto) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 
 }
