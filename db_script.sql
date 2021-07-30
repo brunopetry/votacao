@@ -11,7 +11,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema s7gieufzb379zhg8
 -- -----------------------------------------------------
--- CREATE SCHEMA IF NOT EXISTS `s7gieufzb379zhg8` DEFAULT CHARACTER SET utf8 ;
+CREATE SCHEMA IF NOT EXISTS `s7gieufzb379zhg8` DEFAULT CHARACTER SET utf8 ;
 USE `s7gieufzb379zhg8` ;
 
 -- -----------------------------------------------------
@@ -23,28 +23,10 @@ CREATE TABLE IF NOT EXISTS `s7gieufzb379zhg8`.`pauta` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NOT NULL,
   `dataCriacao` TIMESTAMP NOT NULL,
-  PRIMARY KEY (`id`))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `s7gieufzb379zhg8`.`sessaoVotacao`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `s7gieufzb379zhg8`.`sessaoVotacao` ;
-
-CREATE TABLE IF NOT EXISTS `s7gieufzb379zhg8`.`sessaoVotacao` (
-  `id` INT NOT NULL AUTO_INCREMENT,
   `aberta` TINYINT NOT NULL DEFAULT 0,
   `dataAbertura` TIMESTAMP NOT NULL,
   `dataFechamento` TIMESTAMP NOT NULL,
-  `pauta_id` INT NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `fk_sessaoVotacao_pauta_idx` (`pauta_id` ASC) VISIBLE,
-  CONSTRAINT `fk_sessaoVotacao_pauta`
-    FOREIGN KEY (`pauta_id`)
-    REFERENCES `s7gieufzb379zhg8`.`pauta` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
 
@@ -56,12 +38,12 @@ DROP TABLE IF EXISTS `s7gieufzb379zhg8`.`Voto` ;
 CREATE TABLE IF NOT EXISTS `s7gieufzb379zhg8`.`Voto` (
   `cpf` VARCHAR(11) NOT NULL,
   `voto` ENUM('SIM', 'NÃO') NOT NULL,
-  `sessaoVotacao_id` INT NOT NULL,
+  `pauta_id` INT NOT NULL,
   PRIMARY KEY (`cpf`),
-  INDEX `fk_Voto_sessaoVotacao1_idx` (`sessaoVotacao_id` ASC) VISIBLE,
-  CONSTRAINT `fk_Voto_sessaoVotacao1`
-    FOREIGN KEY (`sessaoVotacao_id`)
-    REFERENCES `s7gieufzb379zhg8`.`sessaoVotacao` (`id`)
+  INDEX `fk_Voto_pauta_idx` (`pauta_id` ASC) VISIBLE,
+  CONSTRAINT `fk_Voto_pauta`
+    FOREIGN KEY (`pauta_id`)
+    REFERENCES `s7gieufzb379zhg8`.`pauta` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
