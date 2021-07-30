@@ -67,19 +67,6 @@ public class PautaController {
 		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 
-//	@RequestMapping(value = "/pauta/atualizarSenha", method = RequestMethod.POST)
-//	public ResponseEntity<Object> atualizarSenha(@Valid @RequestBody UsuarioDTO pauta) {
-//		Optional<Pauta> usuarioBD = pautaRepository.findByEmail(pauta.getEmail());
-//		if (usuarioBD.isPresent()) {
-//			usuarioBD.get().setSenha(passwordEncoder.encode(pauta.getSenha()));
-//			pautaRepository.save(usuarioBD.get());
-//			return new ResponseEntity<>(HttpStatus.OK);
-//		} else {
-//			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//		}
-//		
-//	}
-
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> deletarPauta(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> pauta = pautaRepository.findById(id);
@@ -93,17 +80,24 @@ public class PautaController {
 
 	@PostMapping("/abrir-sessao-votacao")
 	public ResponseEntity<Object> abrirSessaoVotacao(@Valid @RequestBody AbrirSessaoVotacaoDTO abrirSessaoVotacaoDTO) {
-		Pauta pauta = pautaRepository.getById(abrirSessaoVotacaoDTO.getIdPauta());
-		pauta.setDataAbertura(abrirSessaoVotacaoDTO.getDataAbertura());
+		Optional<Pauta> opPauta = pautaRepository.findById(abrirSessaoVotacaoDTO.getIdPauta());
 
-		if (abrirSessaoVotacaoDTO.getDataFechamento() == null) {
-			pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataAbertura().plusMinutes(1));
+		if (opPauta.isPresent()) {
+			Pauta pauta = opPauta.get();
+			pauta.setDataAbertura(abrirSessaoVotacaoDTO.getDataAbertura());
+
+			if (abrirSessaoVotacaoDTO.getDataFechamento() == null) {
+				pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataAbertura().plusMinutes(1));
+			} else {
+				pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataFechamento());
+			}
+
+			pautaRepository.saveAndFlush(pauta);
+			return new ResponseEntity<>(HttpStatus.OK);
 		} else {
-			pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataFechamento());
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		pautaRepository.saveAndFlush(pauta);
-		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@PostMapping("/votar")
@@ -114,23 +108,28 @@ public class PautaController {
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		Pauta pauta = pautaRepository.getById(votoDTO.getIdPauta());
+		Optional<Pauta> opPauta = pautaRepository.findById(votoDTO.getIdPauta());
 
-		if (pauta.isAberta()) {
+		if (opPauta.isPresent()) {
+			Pauta pauta = opPauta.get();
+			if (pauta.isAberta()) {
 
-			VotoPK votoId = new VotoPK(votoDTO.getCpf(), votoDTO.getIdPauta());
+				VotoPK votoId = new VotoPK(votoDTO.getCpf(), votoDTO.getIdPauta());
 
-			if (votoRepository.existsById(votoId)) {
-				return new ResponseEntity<>(new ErroDTO("Voto não permitido. Apenas um voto por CPF permitido."),
-						new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+				if (votoRepository.existsById(votoId)) {
+					return new ResponseEntity<>(new ErroDTO("Voto não permitido. Apenas um voto por CPF permitido."),
+							new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+
+				Voto voto = new Voto(votoId, votoDTO.getVoto());
+				votoRepository.saveAndFlush(voto);
+				return new ResponseEntity<>(HttpStatus.CREATED);
+			} else {
+				return new ResponseEntity<>(new ErroDTO("Pauta fechada para votação."), new HttpHeaders(),
+						HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-
-			Voto voto = new Voto(votoId, votoDTO.getVoto());
-			votoRepository.saveAndFlush(voto);
-			return new ResponseEntity<>(HttpStatus.CREATED);
 		} else {
-			return new ResponseEntity<>(new ErroDTO("Pauta fechada para votação."), new HttpHeaders(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
 	}
