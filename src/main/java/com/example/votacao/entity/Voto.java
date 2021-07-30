@@ -78,4 +78,9 @@ public class Voto {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "Voto [id=" + id + ", voto=" + voto + "]";
+	}
+
 }

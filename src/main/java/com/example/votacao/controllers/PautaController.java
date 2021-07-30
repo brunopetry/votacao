@@ -1,5 +1,6 @@
 package com.example.votacao.controllers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.votacao.dto.AbrirSessaoVotacaoDTO;
 import com.example.votacao.dto.ErroDTO;
 import com.example.votacao.dto.PautaDTO;
+import com.example.votacao.dto.ResultadoDTO;
 import com.example.votacao.dto.VotoDTO;
 import com.example.votacao.entity.Pauta;
 import com.example.votacao.entity.Voto;
@@ -132,6 +134,43 @@ public class PautaController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
+	}
+
+	@GetMapping("/{id}/contabilizar-votacao")
+	public ResponseEntity<ResultadoDTO> contabilizarVotacao(@PathVariable(value = "id") Integer id) {
+		Optional<Pauta> opPauta = pautaRepository.findById(id);
+
+		if (opPauta.isPresent()) {
+
+			Pauta pauta = opPauta.get();
+
+			if (pauta.isAberta()) {
+				pauta.setDataFechamento(LocalDateTime.now());
+			}
+
+			int qtdVotosSim = 0;
+			int qtdVotosNao = 0;
+
+			for (Voto voto : pauta.getVotos()) {
+				if (voto.getVoto().toUpperCase().equals("SIM")) {
+					qtdVotosSim += 1;
+				} else {
+					qtdVotosNao += 1;
+				}
+			}
+
+			pauta.setQtdVotosSim(qtdVotosSim);
+			pauta.setQtdVotosNao(qtdVotosNao);
+			pauta.setResultado(qtdVotosSim > qtdVotosNao ? "SIM" : "NÃO");
+			
+			pautaRepository.saveAndFlush(pauta);
+			
+			ResultadoDTO resultado = new ResultadoDTO(qtdVotosNao,qtdVotosSim, pauta.getResultado());
+
+			return new ResponseEntity<>(resultado, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
 
 }
