@@ -87,7 +87,7 @@ public class PautaController {
 			pauta.setDataAbertura(abrirSessaoVotacaoDTO.getDataAbertura());
 
 			if (abrirSessaoVotacaoDTO.getDataFechamento() == null) {
-				pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataAbertura().plusMinutes(1));
+				pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataAbertura().plusMinutes(1).withSecond(0));
 			} else {
 				pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataFechamento());
 			}
