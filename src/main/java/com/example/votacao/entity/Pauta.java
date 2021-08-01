@@ -23,12 +23,12 @@ public class Pauta {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	@Column
 	@NotNull
+	@Column(name = "nome")
 	private String nome;
 
-	@Column(name = "datacriacao")
 	@NotNull
+	@Column(name = "datacriacao")
 	private LocalDateTime dataCriacao;
 
 	@Column(name = "dataabertura")
@@ -37,13 +37,13 @@ public class Pauta {
 	@Column(name = "datafechamento")
 	private LocalDateTime dataFechamento;
 
-	@Column
+	@Column(name = "qtdvotosnao")
 	private Integer qtdVotosNao;
 
-	@Column
+	@Column(name = "qtdvotossim")
 	private Integer qtdVotosSim;
 
-	@Column
+	@Column(name = "resultado")
 	private String resultado;
 
 	@Transient

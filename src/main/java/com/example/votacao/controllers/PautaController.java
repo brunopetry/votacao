@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.votacao.dto.AbrirSessaoVotacaoDTO;
+import com.example.votacao.dto.CPFHabilitado;
 import com.example.votacao.dto.ErroDTO;
 import com.example.votacao.dto.PautaDTO;
 import com.example.votacao.dto.ResultadoDTO;
@@ -32,6 +34,7 @@ import com.example.votacao.util.ValidarCPF;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import reactor.core.publisher.Mono;
 
 @RestController
 @Api(value = "Pauta")
@@ -86,11 +89,11 @@ public class PautaController {
 
 		if (opPauta.isPresent()) {
 			Pauta pauta = opPauta.get();
-			
+
 			if (pauta.getResultado() != null) {
 				return erro("Pauta finalizada. Utilize o serviço de resultado.");
 			}
-			
+
 			pauta.setDataAbertura(abrirSessaoVotacaoDTO.getDataAbertura());
 
 			if (abrirSessaoVotacaoDTO.getDataFechamento() == null) {
@@ -98,7 +101,7 @@ public class PautaController {
 			} else {
 				pauta.setDataFechamento(abrirSessaoVotacaoDTO.getDataFechamento());
 			}
-			
+
 			pautaRepository.saveAndFlush(pauta);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} else {
@@ -114,26 +117,37 @@ public class PautaController {
 			return erro("CPF inválido.");
 		}
 
-		Optional<Pauta> opPauta = pautaRepository.findById(votoDTO.getIdPauta());
+		WebClient client = WebClient.create("https://user-info.herokuapp.com");
 
-		if (opPauta.isPresent()) {
-			Pauta pauta = opPauta.get();
-			if (pauta.isAberta()) {
+		Mono<CPFHabilitado> servicoCPFHabilitado = client.get().uri("/users/" + votoDTO.getCpf()).retrieve()
+				.bodyToMono(CPFHabilitado.class);
 
-				VotoPK votoId = new VotoPK(votoDTO.getCpf(), votoDTO.getIdPauta());
+		CPFHabilitado cpfHabilitado = servicoCPFHabilitado.block();
 
-				if (votoRepository.existsById(votoId)) {
-					return erro("Voto não permitido. Apenas um voto por CPF permitido.");
+		if (cpfHabilitado.isHabilitado()) {
+			Optional<Pauta> opPauta = pautaRepository.findById(votoDTO.getIdPauta());
+
+			if (opPauta.isPresent()) {
+				Pauta pauta = opPauta.get();
+				if (pauta.isAberta()) {
+
+					VotoPK votoId = new VotoPK(votoDTO.getCpf(), votoDTO.getIdPauta());
+
+					if (votoRepository.existsById(votoId)) {
+						return erro("Voto não permitido. Apenas um voto por CPF permitido.");
+					}
+
+					Voto voto = new Voto(votoId, votoDTO.getVoto());
+					votoRepository.saveAndFlush(voto);
+					return new ResponseEntity<>(HttpStatus.CREATED);
+				} else {
+					return erro("Pauta fechada para votação.");
 				}
-
-				Voto voto = new Voto(votoId, votoDTO.getVoto());
-				votoRepository.saveAndFlush(voto);
-				return new ResponseEntity<>(HttpStatus.CREATED);
 			} else {
-				return erro("Pauta fechada para votação.");
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}
 		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return erro("CPF não habilitado para votação");
 		}
 
 	}
@@ -212,7 +226,8 @@ public class PautaController {
 			} else {
 
 				if (pauta.isAberta()) {
-					return erro("Pauta aberta para votação, utilize o seviço de contabilizar votação para encerrar e obter o resultado.");
+					return erro(
+							"Pauta aberta para votação, utilize o seviço de contabilizar votação para encerrar e obter o resultado.");
 				} else {
 					return erro("Utilize o seviço de contabilizar votação para encerrar e obter o resultado.");
 				}
@@ -223,8 +238,7 @@ public class PautaController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
-	
+
 	private ResponseEntity<Object> erro(String mensagemErro) {
 		return new ResponseEntity<>(new ErroDTO(mensagemErro), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 	}
