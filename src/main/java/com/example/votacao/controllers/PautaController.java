@@ -47,12 +47,13 @@ public class PautaController {
 	@Autowired
 	private VotoRepository votoRepository;
 
-	@ApiOperation(value = "Mostra lista de pautas")
+	@ApiOperation(value = "Listar pautas")
 	@GetMapping("/lista")
 	public List<Pauta> getPautas() {
 		return pautaRepository.findAll();
 	}
 
+	@ApiOperation(value = "Buscar pauta")
 	@GetMapping("/{id}")
 	public ResponseEntity<Pauta> getPauta(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> pauta = pautaRepository.findById(id);
@@ -64,6 +65,7 @@ public class PautaController {
 		}
 	}
 
+	@ApiOperation(value = "Adicionar pauta")
 	@PostMapping("/adicionar")
 	public ResponseEntity<Object> adicionarPauta(@Valid @RequestBody PautaDTO pauta) {
 		Pauta pautaGravar = new Pauta(pauta.getNome());
@@ -72,6 +74,7 @@ public class PautaController {
 		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 
+	@ApiOperation(value = "Deletar pauta")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> deletarPauta(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> pauta = pautaRepository.findById(id);
@@ -83,6 +86,7 @@ public class PautaController {
 		}
 	}
 
+	@ApiOperation(value = "Abrir sessão de votação")
 	@PostMapping("/abrir-sessao-votacao")
 	public ResponseEntity<Object> abrirSessaoVotacao(@Valid @RequestBody AbrirSessaoVotacaoDTO abrirSessaoVotacaoDTO) {
 		Optional<Pauta> opPauta = pautaRepository.findById(abrirSessaoVotacaoDTO.getIdPauta());
@@ -110,6 +114,7 @@ public class PautaController {
 
 	}
 
+	@ApiOperation(value = "Votar")
 	@PostMapping("/votar")
 	public ResponseEntity<Object> votar(@Valid @RequestBody VotoDTO votoDTO) {
 
@@ -152,6 +157,7 @@ public class PautaController {
 
 	}
 
+	@ApiOperation(value = "Contabilizar votação")
 	@GetMapping("/{id}/contabilizar-votacao")
 	public ResponseEntity<Object> contabilizarVotacao(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> opPauta = pautaRepository.findById(id);
@@ -209,6 +215,7 @@ public class PautaController {
 		}
 	}
 
+	@ApiOperation(value = "Resultado da votação")
 	@GetMapping("/{id}/resultado-votacao")
 	public ResponseEntity<Object> resultado(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> opPauta = pautaRepository.findById(id);
