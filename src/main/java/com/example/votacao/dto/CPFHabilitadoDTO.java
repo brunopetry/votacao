@@ -1,6 +1,6 @@
 package com.example.votacao.dto;
 
-public class CPFHabilitado {
+public class CPFHabilitadoDTO {
 
 	private String status;
 

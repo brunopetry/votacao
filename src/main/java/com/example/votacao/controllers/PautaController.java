@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.votacao.dto.AbrirSessaoVotacaoDTO;
-import com.example.votacao.dto.CPFHabilitado;
+import com.example.votacao.dto.CPFHabilitadoDTO;
 import com.example.votacao.dto.ErroDTO;
 import com.example.votacao.dto.PautaDTO;
 import com.example.votacao.dto.ResultadoDTO;
@@ -34,6 +34,8 @@ import com.example.votacao.util.ValidarCPF;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -53,7 +55,9 @@ public class PautaController {
 		return pautaRepository.findAll();
 	}
 
-	@ApiOperation(value = "Buscar pauta")
+	@ApiOperation(value = "Buscar pauta", notes = "Este endpoint busca uma pauta por id.")
+	@ApiResponses({ @ApiResponse(code = 200, message = "Exclusão efetuada com sucesso"),
+			@ApiResponse(code = 404, message = "Pauta não encontrada.") })
 	@GetMapping("/{id}")
 	public ResponseEntity<Pauta> getPauta(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> pauta = pautaRepository.findById(id);
@@ -65,7 +69,8 @@ public class PautaController {
 		}
 	}
 
-	@ApiOperation(value = "Adicionar pauta")
+	@ApiOperation(value = "Adicionar pauta", notes = "Este endpoint adicionar uma pauta.")
+	@ApiResponses({ @ApiResponse(code = 201, message = "Pauta criada com sucesso.") })
 	@PostMapping("/adicionar")
 	public ResponseEntity<Object> adicionarPauta(@Valid @RequestBody PautaDTO pauta) {
 		Pauta pautaGravar = new Pauta(pauta.getNome());
@@ -74,7 +79,9 @@ public class PautaController {
 		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 
-	@ApiOperation(value = "Deletar pauta")
+	@ApiOperation(value = "Deletar pauta", notes = "Este endpoint exclui uma pauta e seus votos.")
+	@ApiResponses({ @ApiResponse(code = 200, message = "Exclusão efetuada com sucesso"),
+			@ApiResponse(code = 404, message = "Pauta não encontrada.") })
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> deletarPauta(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> pauta = pautaRepository.findById(id);
@@ -86,7 +93,9 @@ public class PautaController {
 		}
 	}
 
-	@ApiOperation(value = "Abrir sessão de votação")
+	@ApiOperation(value = "Abrir sessão de votação", notes = "Este endpoint abre a sessão de votação da pauta.")
+	@ApiResponses({ @ApiResponse(code = 200, message = "Sessão de votação aberta com sucesso"),
+			@ApiResponse(code = 404, message = "Pauta não encontrada.") })
 	@PostMapping("/abrir-sessao-votacao")
 	public ResponseEntity<Object> abrirSessaoVotacao(@Valid @RequestBody AbrirSessaoVotacaoDTO abrirSessaoVotacaoDTO) {
 		Optional<Pauta> opPauta = pautaRepository.findById(abrirSessaoVotacaoDTO.getIdPauta());
@@ -114,7 +123,9 @@ public class PautaController {
 
 	}
 
-	@ApiOperation(value = "Votar")
+	@ApiOperation(value = "Votar", notes = "Este endpoint regista o voto.")
+	@ApiResponses({ @ApiResponse(code = 200, message = "Voto realizado com sucesso"),
+			@ApiResponse(code = 404, message = "Pauta não encontrada.") })
 	@PostMapping("/votar")
 	public ResponseEntity<Object> votar(@Valid @RequestBody VotoDTO votoDTO) {
 
@@ -124,10 +135,10 @@ public class PautaController {
 
 		WebClient client = WebClient.create("https://user-info.herokuapp.com");
 
-		Mono<CPFHabilitado> servicoCPFHabilitado = client.get().uri("/users/" + votoDTO.getCpf()).retrieve()
-				.bodyToMono(CPFHabilitado.class);
+		Mono<CPFHabilitadoDTO> servicoCPFHabilitado = client.get().uri("/users/" + votoDTO.getCpf()).retrieve()
+				.bodyToMono(CPFHabilitadoDTO.class);
 
-		CPFHabilitado cpfHabilitado = servicoCPFHabilitado.block();
+		CPFHabilitadoDTO cpfHabilitado = servicoCPFHabilitado.block();
 
 		if (cpfHabilitado.isHabilitado()) {
 			Optional<Pauta> opPauta = pautaRepository.findById(votoDTO.getIdPauta());
@@ -157,7 +168,9 @@ public class PautaController {
 
 	}
 
-	@ApiOperation(value = "Contabilizar votação")
+	@ApiOperation(value = "Contabilizar votação", notes = "Este endpoint encerra a votação, caso ainda estaja aberta, e contabiliza os votos, apresentando o resultado.")
+	@ApiResponses({ @ApiResponse(code = 200, message = "Votação contabilizada com sucesso"),
+			@ApiResponse(code = 404, message = "Pauta não encontrada.") })
 	@GetMapping("/{id}/contabilizar-votacao")
 	public ResponseEntity<Object> contabilizarVotacao(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> opPauta = pautaRepository.findById(id);
@@ -215,7 +228,8 @@ public class PautaController {
 		}
 	}
 
-	@ApiOperation(value = "Resultado da votação")
+	@ApiOperation(value = "Resultado da votação", notes = "Este endpoint exibe o resultado da votação se já tiver sido contabilizada.")
+	@ApiResponses({ @ApiResponse(code = 404, message = "Pauta não encontrada.") })
 	@GetMapping("/{id}/resultado-votacao")
 	public ResponseEntity<Object> resultado(@PathVariable(value = "id") Integer id) {
 		Optional<Pauta> opPauta = pautaRepository.findById(id);
@@ -234,7 +248,7 @@ public class PautaController {
 
 				if (pauta.isAberta()) {
 					return erro(
-							"Pauta aberta para votação, utilize o seviço de contabilizar votação para encerrar e obter o resultado.");
+							"Pauta aberta para votação, utilize o seviço de contabilizar votação para encerrar votação e obter o resultado.");
 				} else {
 					return erro("Utilize o seviço de contabilizar votação para encerrar e obter o resultado.");
 				}
