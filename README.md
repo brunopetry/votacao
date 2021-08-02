@@ -3,9 +3,9 @@
 #### Tecnologias utilizadas
 - Java 8;
 - Spring boot;
-- Hibernarte;
+- Hibernate;
 - Swagger;
-- Maven
+- Maven;
 - Banco de dados MySql;
 - Git;
 - Heroku;
