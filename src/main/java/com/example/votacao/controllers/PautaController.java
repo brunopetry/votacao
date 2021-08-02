@@ -132,6 +132,10 @@ public class PautaController {
 		if (!ValidarCPF.isCPF(votoDTO.getCpf())) {
 			return erro("CPF inválido.");
 		}
+		
+		if (!votoDTO.isVotoValido()) {
+			return erro("Voto inválido! Apenas votos Sim ou Não são permitidos.");
+		}
 
 		WebClient client = WebClient.create("https://user-info.herokuapp.com");
 

@@ -36,5 +36,10 @@ public class VotoDTO {
 	public void setVoto(String voto) {
 		this.voto = voto;
 	}
+	
+	public boolean isVotoValido() {
+		return getVoto() != null && (getVoto().equalsIgnoreCase("sim") || getVoto().equalsIgnoreCase("nao")
+				|| getVoto().equalsIgnoreCase("não"));
+	}
 
 }
